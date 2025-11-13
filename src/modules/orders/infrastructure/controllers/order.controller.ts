@@ -91,7 +91,7 @@ export class OrderController {
   }
 
   // -------------------------------------------------------
-  // UPDATE STATE (solo ADMIN)
+  // UPDATE STATE (admin o dueño de la orden)
   // -------------------------------------------------------
   @Put(":id/state/:state")
   @ApiOperation({ summary: "Actualizar el estado de una orden" })
@@ -100,8 +100,11 @@ export class OrderController {
     @Param("id", ParseIntPipe) id: number,
     @Param("state") state: StateOrder
   ): Promise<boolean> {
-    if (req.user.role !== "admin") {
-      throw new ForbiddenException("Solo un administrador puede cambiar el estado");
+    const order = await this.orderService.findById(id);
+    
+    // Solo dueño o admin
+    if (order.userId !== Number(req.user.id) && req.user.role !== "admin") {
+      throw new ForbiddenException("No tienes permiso para cambiar el estado de esta orden");
     }
 
     return this.orderService.updateState(id, state);
