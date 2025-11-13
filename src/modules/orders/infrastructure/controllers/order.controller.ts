@@ -1,77 +1,125 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiBearerAuth, ApiResponse, ApiOperation, ApiTags } from "@nestjs/swagger";
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Req,
+  ForbiddenException,
+} from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
+
 import { OrderService } from "../../application/services/order.service";
 import { CreateOrderDto } from "../../application/dtos/create-order.dto";
 import { StateOrder } from "../../domain/entities/state-order.enum";
 import { OrderEntity } from "../../domain/entities/order.entity";
 
-@ApiTags('Orders')
-@Controller('orders')
+// Auth
+import { JwtAuthGuard } from "../../../auth/jwt-auth.guard";
+
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@ApiTags("Orders")
+@Controller("orders")
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
+  // -------------------------------------------------------
+  // CREATE ORDER
+  // -------------------------------------------------------
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Crear una nueva orden' })
-  @ApiResponse({ status: 201, description: 'La orden ha sido creada exitosamente.', type: OrderEntity })
-  @ApiResponse({ status: 400, description: 'Solicitud incorrecta.' })
-  @ApiResponse({ status: 401, description: 'No autorizado.' })
-  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
-  async create(@Body() createOrderDto: CreateOrderDto): Promise<OrderEntity> {
-    return this.orderService.create(createOrderDto);
+  @ApiOperation({ summary: "Crear una nueva orden" })
+  async create(@Req() req: any, @Body() dto: CreateOrderDto): Promise<OrderEntity> {
+    dto.userId = Number(req.user.id); // usuario autenticado
+    return this.orderService.create(dto);
   }
 
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener una orden por ID' })
-  @ApiResponse({ status: 200, description: 'La orden ha sido encontrada.', type: OrderEntity })
-  @ApiResponse({ status: 404, description: 'Orden no encontrada.' })
-  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
-  async findById(@Param('id', ParseIntPipe) id: number): Promise<OrderEntity> {
-    return this.orderService.findById(id);
+  // -------------------------------------------------------
+  // GET ORDER BY ID
+  // -------------------------------------------------------
+  @Get(":id")
+  @ApiOperation({ summary: "Obtener una orden por ID" })
+  async findById(@Req() req: any, @Param("id", ParseIntPipe) id: number): Promise<OrderEntity> {
+    const order = await this.orderService.findById(id);
+
+    // Solo dueño o admin
+    if (order.userId !== Number(req.user.id) && req.user.role !== "admin") {
+      throw new ForbiddenException("No tienes permiso para ver esta orden");
+    }
+
+    return order;
   }
 
-  @Get('user/:userId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener órdenes por ID de usuario' })
-  @ApiResponse({ status: 200, description: 'Órdenes encontradas.', type: [OrderEntity] })
-  @ApiResponse({ status: 404, description: 'Órdenes no encontradas.' })
-  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
-  async findByUser(@Param('userId', ParseIntPipe) userId: number): Promise<OrderEntity[]> {
+  // -------------------------------------------------------
+  // GET ORDERS BY USER
+  // -------------------------------------------------------
+  @Get("user/:userId")
+  @ApiOperation({ summary: "Obtener órdenes por ID de usuario" })
+  async findByUser(
+    @Req() req: any,
+    @Param("userId", ParseIntPipe) userId: number
+  ): Promise<OrderEntity[]> {
+    if (Number(req.user.id) !== userId && req.user.role !== "admin") {
+      throw new ForbiddenException("No tienes permiso para ver estas órdenes");
+    }
+
     return this.orderService.findByUser(userId);
   }
 
-  @Get('restaurant/:restId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Obtener órdenes por ID de restaurante' })
-  @ApiResponse({ status: 200, description: 'Órdenes encontradas.', type: [OrderEntity] })
-  @ApiResponse({ status: 404, description: 'Órdenes no encontradas.' })
-  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
-  async findByRestaurant(@Param('restId', ParseIntPipe) restId: number): Promise<OrderEntity[]> {
+  // -------------------------------------------------------
+  // GET ORDERS BY RESTAURANT
+  // Solo ADMIN puede consultar
+  // -------------------------------------------------------
+  @Get("restaurant/:restId")
+  @ApiOperation({ summary: "Obtener órdenes por ID de restaurante" })
+  async findByRestaurant(
+    @Req() req: any,
+    @Param("restId", ParseIntPipe) restId: number
+  ): Promise<OrderEntity[]> {
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException("No tienes permiso para ver órdenes de restaurantes");
+    }
+
     return this.orderService.findByRestaurant(restId);
   }
 
-  @Put(':id/state/:state')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Actualizar el estado de una orden' })
-  @ApiResponse({ status: 200, description: 'El estado de la orden ha sido actualizado.', type: Boolean })
-  @ApiResponse({ status: 400, description: 'Solicitud incorrecta.' })
-  @ApiResponse({ status: 404, description: 'Orden no encontrada.' })
-  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
+  // -------------------------------------------------------
+  // UPDATE STATE (solo ADMIN)
+  // -------------------------------------------------------
+  @Put(":id/state/:state")
+  @ApiOperation({ summary: "Actualizar el estado de una orden" })
   async updateState(
-    @Param('id', ParseIntPipe) id: number,
-    @Param('state') state: StateOrder
+    @Req() req: any,
+    @Param("id", ParseIntPipe) id: number,
+    @Param("state") state: StateOrder
   ): Promise<boolean> {
+    if (req.user.role !== "admin") {
+      throw new ForbiddenException("Solo un administrador puede cambiar el estado");
+    }
+
     return this.orderService.updateState(id, state);
   }
 
-  @Delete(':id')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Eliminar una orden' })
-  @ApiResponse({ status: 200, description: 'La orden ha sido eliminada exitosamente.' })
-  @ApiResponse({ status: 404, description: 'Orden no encontrada.' })
-  @ApiResponse({ status: 500, description: 'Error interno del servidor.' })
-  async delete(@Param('id', ParseIntPipe) id: number): Promise<boolean> {
+  // -------------------------------------------------------
+  // DELETE ORDER
+  // -------------------------------------------------------
+  @Delete(":id")
+  @ApiOperation({ summary: "Eliminar una orden" })
+  async delete(@Req() req: any, @Param("id", ParseIntPipe) id: number): Promise<boolean> {
+    const order = await this.orderService.findById(id);
+
+    // Solo dueño o admin
+    if (order.userId !== Number(req.user.id) && req.user.role !== "admin") {
+      throw new ForbiddenException("No puedes eliminar esta orden");
+    }
+
     return this.orderService.delete(id);
   }
 }

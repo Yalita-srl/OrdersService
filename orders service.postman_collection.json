@@ -1,0 +1,175 @@
+{
+	"info": {
+		"_postman_id": "2e4ef8f7-4dba-4919-83d7-99a965d10bd1",
+		"name": "orders service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "39200431",
+		"_collection_link": "https://test88-3314.postman.co/workspace/final-microservicios~131817b9-2683-44cb-b52f-a838b140448a/collection/39200431-2e4ef8f7-4dba-4919-83d7-99a965d10bd1?action=share&source=collection_link&creator=39200431"
+	},
+	"item": [
+		{
+			"name": "crear orden",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMiIsImVtYWlsIjoibW9uaWsyMDk0OTNAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NjMwNDM0NjksIm9yaWdfaWF0IjoxNzYzMDM5ODY5fQ.-Io4xmQyfhxdBYqPxQ0aOKQiBahRH7O20JllCD-eO7g",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"restaurantId\": 104,\n  \"items\": [\n    { \"productId\": 11, \"quantity\": 1, \"price\": 8.50 },\n    { \"productId\": 14, \"quantity\": 2, \"price\": 15.99 }\n  ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/api/v1/orders",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "mostrar orden",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/v1/orders/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "eliminar orden",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/v1/orders/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "mostrar ordenes por usuario",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMiIsImVtYWlsIjoibW9uaWsyMDk0OTNAZ21haWwuY29tIiwicm9sZSI6InVzZXIiLCJleHAiOjE3NjMwNDYyNjMsIm9yaWdfaWF0IjoxNzYzMDQyNjYzfQ._J_uvN2yQBaeGLa-EXD_1cSI-pBcx6gm4K6Ob7hPyKY",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/v1/orders/user/2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"user",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "mostrar ordenes por restaurante",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/v1/orders/restaurant/101",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"restaurant",
+						"101"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "actualizar estado de una orden",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3000/api/v1/orders/1/state/paid",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"v1",
+						"orders",
+						"1",
+						"state",
+						"paid"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

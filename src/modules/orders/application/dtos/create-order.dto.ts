@@ -5,7 +5,8 @@ import {
   IsArray, 
   ValidateNested, 
   ArrayMinSize, 
-  IsEnum
+  IsEnum,
+  IsOptional
 } from "class-validator";
 import { Type } from "class-transformer";
 import { OrderItemDto } from "./order-item.dto";
@@ -18,8 +19,9 @@ export class CreateOrderDto {
     example: 123,
   })
   @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
-  userId!: number;
+  userId?: number;
 
   @ApiProperty({
     description: "ID del restaurante donde se realiza la orden",
