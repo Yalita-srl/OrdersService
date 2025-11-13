@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - usando tu imagen existente
+  postgres:
+    image: postgres:16-alpine
+    container_name: orders_db
+    environment:
+      POSTGRES_DB: orders_db
+      POSTGRES_USER: serdev
+      POSTGRES_PASSWORD: nifer2030
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - orders-network
+    restart: unless-stopped
+
+  # NestJS Application - construiremos nueva imagen
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: orders_service
+    environment:
+      NODE_ENV: production
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: serdev
+      DB_PASSWORD: nifer2030
+      DB_DATABASE: orders_db
+      JWT_SECRET: grupo8
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+    networks:
+      - orders-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  orders-network:
+    driver: bridge
