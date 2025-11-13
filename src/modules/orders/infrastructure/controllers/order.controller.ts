@@ -93,13 +93,14 @@ export class OrderController {
   // -------------------------------------------------------
   // UPDATE STATE (admin o dueño de la orden)
   // -------------------------------------------------------
+  // En tu order.controller.ts
   @Put(":id/state/:state")
   @ApiOperation({ summary: "Actualizar el estado de una orden" })
   async updateState(
     @Req() req: any,
     @Param("id", ParseIntPipe) id: number,
     @Param("state") state: StateOrder
-  ): Promise<boolean> {
+  ): Promise<any> {  // Cambiar a any para retornar JSON
     const order = await this.orderService.findById(id);
     
     // Solo dueño o admin
@@ -107,7 +108,32 @@ export class OrderController {
       throw new ForbiddenException("No tienes permiso para cambiar el estado de esta orden");
     }
 
-    return this.orderService.updateState(id, state);
+    const success = await this.orderService.updateState(id, state);
+    
+    // Si es un pago exitoso, retornar datos para notificación
+    if (success && state === StateOrder.PAYED) {
+      const notificationData = {
+        type: 'PAYMENT_CONFIRMATION',
+        orderId: id,
+        userId: order.userId,
+        userEmail: req.user.email, // Del token
+        amount: order.totalAmount, // Si tienes este campo
+        status: 'paid',
+        timestamp: new Date().toISOString()
+      };
+      
+      // Publicar a RabbitMQ
+      await this.orderService.publishToRabbitMQ('payment_events', notificationData);
+      
+      return {
+        success: true,
+        message: 'Orden pagada exitosamente',
+        notification: 'Notificación de pago enviada',
+        data: notificationData
+      };
+    }
+    
+    return { success: true, message: 'Estado actualizado' };
   }
 
   // -------------------------------------------------------
