@@ -1,7 +1,5 @@
-version: '3.8'
-
 services:
-  # PostgreSQL Database - usando tu imagen existente
+  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
     container_name: orders_db
@@ -14,10 +12,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - orders-network
+      - paymentnotificationsservice_app-network  # MISMA RED QUE RABBITMQ
     restart: unless-stopped
 
-  # NestJS Application - construiremos nueva imagen
+  # Orders Service
   app:
     build: 
       context: .
@@ -32,17 +30,20 @@ services:
       DB_DATABASE: orders_db
       JWT_SECRET: grupo8
       PORT: 3000
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672
+      ORDERS_QUEUE: order_events
+      PAYMENT_QUEUE: payment_events
     ports:
       - "3000:3000"
     depends_on:
       - postgres
     networks:
-      - orders-network
+      - paymentnotificationsservice_app-network  # MISMA RED QUE RABBITMQ
     restart: unless-stopped
 
 volumes:
   postgres_data:
 
 networks:
-  orders-network:
-    driver: bridge
+  paymentnotificationsservice_app-network:
+    external: true  # USAR LA RED EXISTENTE
