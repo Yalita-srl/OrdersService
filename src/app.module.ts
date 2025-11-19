@@ -7,6 +7,8 @@ import { join } from 'path';
 import { OrdersModule } from './modules/orders/orders.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CatalogoGrpcModule } from './grcp/catalogo.grpc.module';
+
 
 @Module({
   imports: [
@@ -18,6 +20,7 @@ import { AuthModule } from './modules/auth/auth.module';
     DatabaseModule,
     OrdersModule,
     AuthModule,
+    CatalogoGrpcModule,
   ],
 })
 export class AppModule {}

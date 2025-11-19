@@ -18,6 +18,7 @@ import { DeleteOrderUseCase } from './application/use-cases/delete-order.use-cas
 
 // Service
 import { OrderService } from './application/services/order.service';
+import { CatalogoGrpcService } from './infrastructure/adapters/catalogo.grpc.service';
 
 // Controller
 import { OrderController } from './infrastructure/controllers/order.controller';
@@ -36,6 +37,10 @@ import { OrderController } from './infrastructure/controllers/order.controller';
     {
       provide: 'OrderRepositoryInterface',
       useClass: OrderRepository,
+    },
+    {
+      provide: 'ICatalogoService',
+      useClass: CatalogoGrpcService,
     },
 
     // Casos de uso
