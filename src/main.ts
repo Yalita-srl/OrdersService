@@ -14,23 +14,11 @@
     app.setGlobalPrefix('api/v1');
 
     // Configuración de CORS
-    app.enableCors({ 
-      origin: '*',
-  //     origin: (origin, callback) => {
-	// const allowedOrigins = [
-	//   'http://localhost:5173',
-	//   'http://3.93.168.105',
-  //         'https://3.93.168.105'
-	// ];
-  //       if (!origin || allowedOrigins.includes(origin)) {
-  //         callback(null, true);
-  //       } else {
-  //         callback(new Error('CORS not allowed'));
-  //       }
-  //     },
+    app.enableCors({
+      origin: 'http://localhost:5173', // frontend Vite
+      methods: 'GET,POST,PUT,DELETE',
+      allowedHeaders: 'Content-Type, Authorization',
       credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
     });
 
     app.useStaticAssets(join(__dirname, '..', 'storage'), {
