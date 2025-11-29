@@ -83,7 +83,8 @@ export class OrderController {
     @Req() req: any,
     @Param("restId", ParseIntPipe) restId: number
   ): Promise<OrderEntity[]> {
-    if (req.user.role !== "admin") {
+    // Permitir solo admin y restaurant_owner
+    if (req.user.role !== "admin" && req.user.role !== "restaurant_owner") {
       throw new ForbiddenException("No tienes permiso para ver órdenes de restaurantes");
     }
 
